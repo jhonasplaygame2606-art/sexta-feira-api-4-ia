@@ -1,28 +1,99 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sexta-Feira — IA estilo Tony Stark</title>
-  <style>
-    :root{--bg:#071021;--card:#0b1a2a;--accent:#00e0a3;}
-    body{margin:0;font-family:Inter,system-ui;background:#071021;color:#e6f3f1;}
-    #chat{height:70vh;overflow:auto;background:#0b1a2a;padding:15px;border-radius:12px;}
-    .msg{padding:10px;margin:10px 0;border-radius:10px;max-width:80%;}
-    .user{background:#053040;align-self:flex-end;}
-    .bot{background:#111f32;}
-    .controls{margin-top:20px;display:flex;gap:10px;}
-    button{padding:10px 14px;border-radius:10px;border:none;background:#00e0a3;color:#000;font-weight:bold;cursor:pointer;}
-    textarea{width:100%;height:80px;padding:10px;border-radius:10px;background:#0b1a2a;color:#e6f3f1;border:1px solid #123;}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sexta-Feira – IA Futurista</title>
+
+<style>
+  /* Fundo futurista animado */
+  body{
+    margin:0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg,#02101f,#061e34,#0a2c4a);
+    background-size: 400% 400%;
+    animation: fundo 12s infinite;
+    color:#e6f3f1;
+  }
+  @keyframes fundo{
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+  }
+
+  h2{
+    text-align:center;
+    margin-top:20px;
+  }
+
+  #chat{
+    height:60vh;
+    overflow-y:auto;
+    background:#0b1a2ad0;
+    padding:15px;
+    width:90%;
+    margin: auto;
+    border-radius:12px;
+    backdrop-filter: blur(4px);
+  }
+
+  .msg{
+    padding:10px;
+    margin:10px 0;
+    border-radius:10px;
+    max-width:80%;
+    width: fit-content;
+  }
+
+  .user{
+    background:#014b63;
+    margin-left:auto;
+  }
+
+  .bot{
+    background:#111f32;
+  }
+
+  textarea{
+    width:90%;
+    margin: 15px auto 0;
+    display:block;
+    height:70px;
+    padding:10px;
+    background:#0b1a2a;
+    color:white;
+    border-radius:10px;
+    border:1px solid #123;
+  }
+
+  .controls{
+    margin:20px auto;
+    width:90%;
+    display:flex;
+    gap:10px;
+  }
+
+  button{
+    flex:1;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    background:#00e0a3;
+    color:#000;
+    font-weight:bold;
+    cursor:pointer;
+    font-size:16px;
+  }
+</style>
 </head>
+
 <body>
 
-<h2>Sexta-Feira — IA Futurista (PT-BR)</h2>
+<h2>Sexta-Feira — IA PT-BR</h2>
 
 <div id="chat"></div>
 
-<textarea id="textIn" placeholder="Digite aqui ou use o botão falar..."></textarea>
+<textarea id="textIn" placeholder="Digite sua mensagem..."></textarea>
 
 <div class="controls">
   <button id="btnStart">🎙️ Falar</button>
@@ -30,7 +101,7 @@
 </div>
 
 <script>
-let apiKey = "AIzaSyBcx3Z_su5b0vkHAOP3KRw1OJz37KeQn5g"; // SUA CHAVE AQUI
+let apiKey = "AIzaSyBcx3Z_su5b0vkHAOP3KRw1OJz37KeQn5g";
 
 function addMsg(text, who="bot"){
   const c = document.getElementById("chat");
@@ -42,27 +113,34 @@ function addMsg(text, who="bot"){
 }
 
 async function askIA(msg){
+  if(!msg.trim()) return;
   addMsg(msg, "user");
+  document.getElementById("textIn").value = "";
 
-  const resposta = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="+apiKey,{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({ contents:[{ role:"user", parts:[{ text: msg }]}] })
-  }).then(r=>r.json());
+  const resposta = await fetch(
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="+apiKey,
+    {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({
+        contents:[{ role:"user", parts:[{ text: msg }]}]
+      })
+    }
+  ).then(r=>r.json());
 
   const txt = resposta.candidates?.[0]?.content?.parts?.[0]?.text || "Erro na resposta";
   addMsg(txt, "bot");
   speak(txt);
 }
 
-// fala (TTS)
+// Fala
 function speak(text){
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "pt-BR";
   speechSynthesis.speak(u);
 }
 
-// voz → texto
+// Voz → texto
 let rec;
 if("webkitSpeechRecognition" in window){
   rec = new webkitSpeechRecognition();
@@ -70,8 +148,17 @@ if("webkitSpeechRecognition" in window){
   rec.onresult = e => askIA(e.results[0][0].transcript);
 }
 
-document.getElementById("btnStart").onclick = ()=> rec && rec.start();
-document.getElementById("btnAsk").onclick = ()=> askIA(document.getElementById("textIn").value);
+// Botão falar
+document.getElementById("btnStart").onclick = () => rec && rec.start();
+// Botão enviar
+document.getElementById("btnAsk").onclick = () => askIA(textIn.value);
+// Enter envia
+document.getElementById("textIn").addEventListener("keypress", e=>{
+  if(e.key === "Enter"){
+    e.preventDefault();
+    askIA(textIn.value);
+  }
+});
 </script>
 
 </body>
